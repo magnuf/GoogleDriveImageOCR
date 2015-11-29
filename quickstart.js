@@ -11,7 +11,7 @@ var SCOPES = ['https://www.googleapis.com/auth/drive'];
 var TOKEN_DIR = (process.env.HOME || process.env.HOMEPATH ||
     process.env.USERPROFILE) + '/.credentials/';
 var TOKEN_PATH = TOKEN_DIR + 'drive-nodejs-quickstart.json';
-
+var authClient;
 // Load client secrets from a local file.
 fs.readFile('client_secret.json', function processClientSecrets(err, content) {
   if (err) {
@@ -20,7 +20,7 @@ fs.readFile('client_secret.json', function processClientSecrets(err, content) {
   }
   // Authorize a client with the loaded credentials, then call the
   // Drive API.
-  authorize(JSON.parse(content), uploadFile);
+  authorize(JSON.parse(content));
 });
 
 /**
@@ -30,7 +30,7 @@ fs.readFile('client_secret.json', function processClientSecrets(err, content) {
  * @param {Object} credentials The authorization client credentials.
  * @param {function} callback The callback to call with the authorized client.
  */
-function authorize(credentials, callback) {
+function authorize(credentials) {
   var clientSecret = credentials.installed.client_secret;
   var clientId = credentials.installed.client_id;
   var redirectUrl = credentials.installed.redirect_uris[0];
@@ -43,7 +43,7 @@ function authorize(credentials, callback) {
       getNewToken(oauth2Client, callback);
     } else {
       oauth2Client.credentials = JSON.parse(token);
-      callback(oauth2Client);
+      authClient = oauth2Client;
     }
   });
 }
@@ -97,8 +97,8 @@ function storeToken(token) {
   console.log('Token stored to ' + TOKEN_PATH);
 }
 
-function uploadFile(auth) {
-  var drive = google.drive({ version: 'v2', auth: auth });
+function uploadFile() {
+  var drive = google.drive({ version: 'v2', auth: authClient });
   drive.files.insert({
     resource: {
       title: 'testimage.gif',
@@ -112,24 +112,25 @@ function uploadFile(auth) {
     }
   }, function(err, data) {
     if(err) { return; }
-    getText(auth, data)
+    return getText(data)
   });
 }
 
-function getText(auth, fileData) {
+function getText(fileData) {
   var url = fileData.exportLinks['text/plain'];
   request.get(url, {
     'auth' : {
-      'bearer': auth.credentials.access_token
+      'bearer': authClient.credentials.access_token
     }
   }, function(error, response, body) {
     console.log(body);
-    deleteFile(auth, fileData.id)
+    deleteFile(fileData.id)
+    return body;
   });
 }
 
-function deleteFile(auth, fileId) {
-  var drive = google.drive({ version: 'v2', auth: auth });
+function deleteFile(fileId) {
+  var drive = google.drive({ version: 'v2', auth: authClient });
   drive.files.delete({
     fileId: fileId
   }, null);
