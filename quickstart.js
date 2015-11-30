@@ -97,18 +97,17 @@ function storeToken(token) {
   console.log('Token stored to ' + TOKEN_PATH);
 }
 
-function uploadFile() {
+function uploadFile(path) {
   var drive = google.drive({ version: 'v2', auth: authClient });
   drive.files.insert({
     resource: {
-      title: 'testimage.gif',
-      mimeType: 'image/gif'
+      title: 'testimage'
     },
     ocr: true,
     ocrLanguage: "no",
     media: {
-      mimeType: 'image/gif',
-      body: fs.createReadStream('test.gif') // read streams are awesome!
+      mimeType: "image/png", //Just set a mimeType, so that OCR works
+      body: fs.createReadStream(path) // read streams are awesome!
     }
   }, function(err, data) {
     if(err) { return; }
@@ -123,7 +122,6 @@ function getText(fileData) {
       'bearer': authClient.credentials.access_token
     }
   }, function(error, response, body) {
-    console.log(body);
     deleteFile(fileData.id)
     return body;
   });
@@ -135,3 +133,5 @@ function deleteFile(fileId) {
     fileId: fileId
   }, null);
 }
+
+module.exports = uploadFile;
