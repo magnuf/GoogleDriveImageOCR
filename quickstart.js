@@ -6,6 +6,9 @@ var readline = require('readline');
 var google = require('googleapis');
 var googleAuth = require('google-auth-library');
 var request = require("request");
+var EE = require("eventemitter3");
+var EventEmitter = new EE();
+
 
 var SCOPES = ['https://www.googleapis.com/auth/drive'];
 var TOKEN_DIR = (process.env.HOME || process.env.HOMEPATH ||
@@ -40,10 +43,11 @@ function authorize(credentials) {
   // Check if we have previously stored a token.
   fs.readFile(TOKEN_PATH, function(err, token) {
     if (err) {
-      getNewToken(oauth2Client, callback);
+      getNewToken(oauth2Client);
     } else {
       oauth2Client.credentials = JSON.parse(token);
       authClient = oauth2Client;
+      EventEmitter.emit("authed")
     }
   });
 }
@@ -56,7 +60,7 @@ function authorize(credentials) {
  * @param {getEventsCallback} callback The callback to call with the authorized
  *     client.
  */
-function getNewToken(oauth2Client, callback) {
+function getNewToken(oauth2Client) {
   var authUrl = oauth2Client.generateAuthUrl({
     access_type: 'offline',
     scope: SCOPES
@@ -75,7 +79,8 @@ function getNewToken(oauth2Client, callback) {
       }
       oauth2Client.credentials = token;
       storeToken(token);
-      callback(oauth2Client);
+      authClient = oauth2Client;
+      EventEmitter.emit("authed")
     });
   });
 }
@@ -134,4 +139,7 @@ function deleteFile(fileId) {
   }, null);
 }
 
-module.exports = uploadFile;
+module.exports = {
+  events: EventEmitter,
+  runOcr: uploadFile
+}
