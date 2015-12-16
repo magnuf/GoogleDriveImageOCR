@@ -102,7 +102,7 @@ function storeToken(token) {
   console.log('Token stored to ' + TOKEN_PATH);
 }
 
-function uploadFile(path) {
+function uploadFile(path, callback) {
   var drive = google.drive({ version: 'v2', auth: authClient });
   drive.files.insert({
     resource: {
@@ -115,12 +115,11 @@ function uploadFile(path) {
       body: fs.createReadStream(path) // read streams are awesome!
     }
   }, function(err, data) {
-    if(err) { return; }
-    return getText(data)
+      getText(data, callback)
   });
 }
 
-function getText(fileData) {
+function getText(fileData, callback) {
   var url = fileData.exportLinks['text/plain'];
   request.get(url, {
     'auth' : {
@@ -128,7 +127,7 @@ function getText(fileData) {
     }
   }, function(error, response, body) {
     deleteFile(fileData.id)
-    return body;
+    callback(error, body);
   });
 }
 

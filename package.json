@@ -18,6 +18,7 @@
   },
   "homepage": "https://github.com/magnuf/GoogleDriveImageOCR#readme",
   "dependencies": {
+    "eventemitter3": "^1.1.1",
     "google-auth-library": "^0.9.7",
     "googleapis": "^2.1.6",
     "request": "^2.67.0"
