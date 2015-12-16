@@ -47,8 +47,8 @@ function authorize(credentials) {
     } else {
       oauth2Client.credentials = JSON.parse(token);
       authClient = oauth2Client;
-      EventEmitter.emit("authed")
     }
+    EventEmitter.emit("authed");
   });
 }
 
@@ -80,7 +80,6 @@ function getNewToken(oauth2Client) {
       oauth2Client.credentials = token;
       storeToken(token);
       authClient = oauth2Client;
-      EventEmitter.emit("authed")
     });
   });
 }
@@ -112,10 +111,10 @@ function uploadFile(path, callback) {
     ocrLanguage: "no",
     media: {
       mimeType: "image/png", //Just set a mimeType, so that OCR works
-      body: fs.createReadStream(path) // read streams are awesome!
+      body: fs.createReadStream(path)
     }
   }, function(err, data) {
-      getText(data, callback)
+      getText(data, callback);
   });
 }
 
